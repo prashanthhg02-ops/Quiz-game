@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10111f">
+  <title>Quiz Quest — Quick-fire Trivia</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --background: #10111f;
+      --panel: #191a2d;
+      --panel-light: #22243a;
+      --text: #f7f6ff;
+      --muted: #a3a4bd;
+      --purple: #9b83ff;
+      --purple-dark: #7258e8;
+      --mint: #71e5c0;
+      --coral: #ff7f8b;
+      --border: rgba(255, 255, 255, .09);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 28px 16px;
+      overflow-x: hidden;
+      background:
+        radial-gradient(ellipse at 12% 15%, rgba(114, 88, 232, .19), transparent 36%),
+        radial-gradient(ellipse at 90% 85%, rgba(57, 190, 157, .11), transparent 34%),
+        var(--background);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button { font: inherit; }
+
+    .game { width: min(100%, 660px); }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 11px; font-weight: 800; letter-spacing: -.03em; }
+    .brand-mark {
+      display: grid;
+      width: 39px;
+      height: 39px;
+      place-items: center;
+      border-radius: 13px;
+      background: linear-gradient(145deg, #aa94ff, #7357e8);
+      box-shadow: 0 7px 24px rgba(114, 88, 232, .35);
+      font-size: 20px;
+    }
+
+    .sound-button {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: rgba(255, 255, 255, .04);
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .sound-button:hover { color: var(--text); background: rgba(255, 255, 255, .08); }
+
+    .card {
+      padding: clamp(24px, 6vw, 44px);
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      background: linear-gradient(145deg, rgba(29, 30, 50, .97), rgba(22, 23, 39, .97));
+      box-shadow: 0 24px 90px rgba(0, 0, 0, .28);
+    }
+
+    .welcome { text-align: center; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid rgba(155, 131, 255, .2);
+      border-radius: 99px;
+      background: rgba(155, 131, 255, .09);
+      color: #c8baff;
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .sparkle { color: #ffd77a; }
+    h1 { margin: 20px 0 12px; font-size: clamp(36px, 8vw, 56px); line-height: 1.04; letter-spacing: -.055em; }
+    h1 span { color: var(--purple); }
+    .intro { max-width: 410px; margin: 0 auto; color: var(--muted); line-height: 1.7; }
+
+    .feature-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 27px 0 30px;
+    }
+
+    .feature {
+      padding: 10px 13px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: #d7d6e7;
+      font-size: 13px;
+    }
+
+    .primary-button {
+      min-height: 54px;
+      padding: 0 27px;
+      border: 0;
+      border-radius: 15px;
+      background: linear-gradient(110deg, #a28cff, #795deb);
+      color: white;
+      font-weight: 800;
+      box-shadow: 0 10px 28px rgba(121, 93, 235, .28);
+      cursor: pointer;
+      transition: transform .18s, filter .18s;
+    }
+
+    .primary-button:hover { transform: translateY(-2px); filter: brightness(1.08); }
+    .primary-button:active { transform: translateY(0); }
+
+    .game-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 16px; }
+    .round-label { color: var(--muted); font-size: 13px; font-weight: 650; }
+    .stats { display: flex; gap: 9px; }
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .035);
+      font-size: 13px;
+      font-weight: 750;
+    }
+    .stat span { color: var(--muted); font-weight: 600; }
+    .score-icon { color: #ffd77a; }
+    .streak-icon { color: var(--coral); }
+
+    .progress-track { height: 7px; overflow: hidden; border-radius: 99px; background: rgba(255, 255, 255, .08); }
+    .progress-fill { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--purple-dark), #b09dff); transition: width .35s ease; }
+    .timer-row { display: flex; justify-content: space-between; align-items: center; margin: 20px 0 25px; color: var(--muted); font-size: 13px; }
+    .timer { display: flex; align-items: center; gap: 8px; color: var(--text); font-weight: 750; }
+    .timer-ring { color: var(--mint); }
+    .timer.warning, .timer.warning .timer-ring { color: var(--coral); }
+
+    .question-number { margin: 0 0 10px; color: var(--purple); font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    h2 { margin: 0 0 25px; font-size: clamp(23px, 5vw, 31px); line-height: 1.3; letter-spacing: -.035em; }
+    .answers { display: grid; gap: 11px; }
+    .answer {
+      display: flex;
+      width: 100%;
+      min-height: 58px;
+      align-items: center;
+      gap: 13px;
+      padding: 11px 14px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, .035);
+      color: #e5e4f1;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color .16s, background .16s, transform .16s;
+    }
+
+    .answer:hover:not(:disabled) { transform: translateY(-1px); border-color: rgba(155, 131, 255, .6); background: rgba(155, 131, 255, .08); }
+    .answer:focus-visible, button:focus-visible { outline: 3px solid rgba(155, 131, 255, .7); outline-offset: 3px; }
+    .answer:disabled { cursor: default; }
+    .answer-letter {
+      display: grid;
+      width: 32px;
+      height: 32px;
+      flex: 0 0 32px;
+      place-items: center;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .answer.correct { border-color: rgba(113, 229, 192, .65); background: rgba(113, 229, 192, .09); }
+    .answer.correct .answer-letter { border-color: var(--mint); background: var(--mint); color: #10251f; }
+    .answer.incorrect { border-color: rgba(255, 127, 139, .65); background: rgba(255, 127, 139, .08); }
+    .answer.incorrect .answer-letter { border-color: var(--coral); background: var(--coral); color: #301419; }
+
+    .feedback { min-height: 25px; margin: 16px 0 0; color: var(--muted); font-size: 14px; font-weight: 650; }
+    .feedback.good { color: var(--mint); }
+    .feedback.bad { color: var(--coral); }
+    .next-row { display: flex; justify-content: flex-end; margin-top: 13px; }
+    .next-button { padding: 12px 17px; border: 0; border-radius: 12px; background: var(--panel-light); color: white; font-weight: 750; cursor: pointer; }
+    .next-button:hover { background: #30324c; }
+
+    .result { text-align: center; }
+    .result-icon { display: grid; width: 78px; height: 78px; margin: 0 auto 18px; place-items: center; border-radius: 25px; background: rgba(255, 215, 122, .11); font-size: 38px; }
+    .result h2 { margin-bottom: 8px; font-size: 36px; }
+    .result-copy { margin: 0; color: var(--muted); }
+    .result-score { margin: 27px 0 22px; color: var(--purple); font-size: 64px; font-weight: 850; letter-spacing: -.06em; }
+    .result-score small { color: var(--muted); font-size: 17px; font-weight: 600; letter-spacing: 0; }
+    .result-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 27px; }
+    .result-stat { padding: 15px 8px; border: 1px solid var(--border); border-radius: 14px; background: rgba(255, 255, 255, .025); }
+    .result-stat strong { display: block; margin-bottom: 5px; font-size: 19px; }
+    .result-stat span { color: var(--muted); font-size: 12px; }
+
+    .hidden { display: none !important; }
+    .footer { margin-top: 17px; color: #777990; font-size: 12px; text-align: center; }
+
+    @media (max-width: 480px) {
+      .topbar { margin-bottom: 15px; }
+      .card { border-radius: 21px; }
+      .game-header { align-items: flex-start; }
+      .stats { gap: 6px; }
+      .stat { gap: 5px; padding: 8px 9px; font-size: 12px; }
+      .result-stats { gap: 7px; }
+      .result-stat { padding: 12px 4px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="game">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">✦</span><span>Quiz Quest</span></div>
+      <button class="sound-button" id="sound-toggle" type="button" aria-label="Turn sound on" title="Toggle sound">♫</button>
+    </header>
+
+    <section class="card welcome" id="welcome-screen">
+      <div class="eyebrow"><span class="sparkle" aria-hidden="true">✦</span> The quick-fire trivia game</div>
+      <h1>Ready to test<br>your <span>brainpower?</span></h1>
+      <p class="intro">Ten questions. Fifteen seconds each. See how many you can get right and build the ultimate streak.</p>
+      <div class="feature-row" aria-label="Game details">
+        <span class="feature">⏱ &nbsp;15 sec per question</span>
+        <span class="feature">⚡ &nbsp;Streak bonus points</span>
+        <span class="feature">🎯 &nbsp;10 questions</span>
+      </div>
+      <button class="primary-button" id="start-button" type="button">Let's play <span aria-hidden="true">→</span></button>
+    </section>
+
+    <section class="card hidden" id="quiz-screen" aria-live="polite">
+      <div class="game-header">
+        <div class="round-label" id="round-label">QUESTION 1 / 10</div>
+        <div class="stats">
+          <div class="stat"><span class="score-icon" aria-hidden="true">★</span><span>Score</span><strong id="score">0</strong></div>
+          <div class="stat"><span class="streak-icon" aria-hidden="true">🔥</span><span>Streak</span><strong id="streak">0</strong></div>
+        </div>
+      </div>
+      <div class="progress-track" role="progressbar" aria-label="Quiz progress" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="timer-row">
+        <span>Choose your answer</span>
+        <span class="timer" id="timer"><span class="timer-ring" aria-hidden="true">◷</span><span id="time-left">15</span>s</span>
+      </div>
+      <p class="question-number" id="question-number">Question 1</p>
+      <h2 id="question-text"></h2>
+      <div class="answers" id="answers"></div>
+      <p class="feedback" id="feedback" role="status" aria-live="polite"></p>
+      <div class="next-row"><button class="next-button hidden" id="next-button" type="button">Next question <span aria-hidden="true">→</span></button></div>
+    </section>
+
+    <section class="card result hidden" id="result-screen" aria-live="polite">
+      <div class="result-icon" id="result-icon" aria-hidden="true">🏆</div>
+      <div class="eyebrow">Quiz complete</div>
+      <h2 id="result-title">Brilliant work!</h2>
+      <p class="result-copy" id="result-copy">You made it through all ten questions.</p>
+      <div class="result-score"><span id="final-score">0</span><small> points</small></div>
+      <div class="result-stats">
+        <div class="result-stat"><strong id="correct-count">0/10</strong><span>Correct answers</span></div>
+        <div class="result-stat"><strong id="best-streak">0</strong><span>Best streak</span></div>
+        <div class="result-stat"><strong id="accuracy">0%</strong><span>Accuracy</span></div>
+      </div>
+      <button class="primary-button" id="play-again-button" type="button">Play again <span aria-hidden="true">↻</span></button>
+    </section>
+
+    <footer class="footer">A little curiosity goes a long way.</footer>
+  </main>
+
+  <script>
+    const QUESTIONS = [
+      { question: "Which planet is known as the Red Planet?", answers: ["Venus", "Mars", "Jupiter", "Mercury"], correct: 1 },
+      { question: "What is the largest ocean on Earth?", answers: ["Atlantic Ocean", "Indian Ocean", "Pacific Ocean", "Arctic Ocean"], correct: 2 },
+      { question: "How many sides does a hexagon have?", answers: ["Five", "Six", "Seven", "Eight"], correct: 1 },
+      { question: "Which animal is the tallest in the world?", answers: ["Elephant", "Giraffe", "Ostrich", "Camel"], correct: 1 },
+      { question: "What is the chemical symbol for gold?", answers: ["Ag", "Go", "Gd", "Au"], correct: 3 },
+      { question: "Which instrument has 88 keys?", answers: ["Piano", "Violin", "Flute", "Harp"], correct: 0 },
+      { question: "What is the capital city of Japan?", answers: ["Kyoto", "Osaka", "Tokyo", "Hiroshima"], correct: 2 },
+      { question: "How many colors are traditionally in a rainbow?", answers: ["Five", "Six", "Seven", "Eight"], correct: 2 },
+      { question: "Which gas do plants absorb from the atmosphere?", answers: ["Oxygen", "Nitrogen", "Carbon dioxide", "Hydrogen"], correct: 2 },
+      { question: "What is the smallest prime number?", answers: ["0", "1", "2", "3"], correct: 2 }
+    ];
+    const QUESTION_TIME = 15;
+    const POINTS_PER_CORRECT = 100;
+    const letters = ["A", "B", "C", "D"];
+    const screens = {
+      welcome: document.getElementById("welcome-screen"),
+      quiz: document.getElementById("quiz-screen"),
+      result: document.getElementById("result-screen")
+    };
+
+    let currentQuestion = 0;
+    let score = 0;
+    let streak = 0;
+    let bestStreak = 0;
+    let correctAnswers = 0;
+    let timeLeft = QUESTION_TIME;
+    let timerId = null;
+    let answered = false;
+    let soundEnabled = false;
+    let audioContext = null;
+
+    const scoreElement = document.getElementById("score");
+    const streakElement = document.getElementById("streak");
+    const timerElement = document.getElementById("timer");
+    const timeElement = document.getElementById("time-left");
+    const answersElement = document.getElementById("answers");
+    const feedbackElement = document.getElementById("feedback");
+    const nextButton = document.getElementById("next-button");
+    const progressBar = document.querySelector('[role="progressbar"]');
+
+    function showScreen(name) {
+      Object.entries(screens).forEach(([key, element]) => {
+        element.classList.toggle("hidden", key !== name);
+      });
+    }
+
+    function startGame() {
+      currentQuestion = 0;
+      score = 0;
+      streak = 0;
+      bestStreak = 0;
+      correctAnswers = 0;
+      scoreElement.textContent = "0";
+      streakElement.textContent = "0";
+      showScreen("quiz");
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      if (currentQuestion >= QUESTIONS.length) {
+        showResults();
+        return;
+      }
+
+      const item = QUESTIONS[currentQuestion];
+      answered = false;
+      timeLeft = QUESTION_TIME;
+      document.getElementById("round-label").textContent = `QUESTION ${currentQuestion + 1} / ${QUESTIONS.length}`;
+      document.getElementById("question-number").textContent = `Question ${currentQuestion + 1}`;
+      document.getElementById("question-text").textContent = item.question;
+      timeElement.textContent = timeLeft;
+      timerElement.classList.remove("warning");
+      feedbackElement.textContent = "";
+      feedbackElement.className = "feedback";
+      nextButton.classList.add("hidden");
+      progressBar.setAttribute("aria-valuenow", currentQuestion);
+      document.getElementById("progress-fill").style.width = `${(currentQuestion / QUESTIONS.length) * 100}%`;
+      answersElement.replaceChildren();
+
+      item.answers.forEach((answer, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "answer";
+        button.innerHTML = `<span class="answer-letter">${letters[index]}</span><span></span>`;
+        button.lastElementChild.textContent = answer;
+        button.addEventListener("click", () => selectAnswer(index));
+        answersElement.appendChild(button);
+      });
+
+      clearInterval(timerId);
+      timerId = setInterval(tick, 1000);
+    }
+
+    function tick() {
+      if (answered) return;
+      timeLeft -= 1;
+      timeElement.textContent = timeLeft;
+      timerElement.classList.toggle("warning", timeLeft <= 5);
+      if (timeLeft <= 0) {
+        clearInterval(timerId);
+        finishQuestion(null);
+      }
+    }
+
+    function selectAnswer(index) {
+      if (answered) return;
+      finishQuestion(index);
+    }
+
+    function finishQuestion(selectedIndex) {
+      if (answered) return;
+      answered = true;
+      clearInterval(timerId);
+      const item = QUESTIONS[currentQuestion];
+      const buttons = [...answersElement.querySelectorAll(".answer")];
+      buttons.forEach(button => { button.disabled = true; });
+      buttons[item.correct].classList.add("correct");
+
+      if (selectedIndex === item.correct) {
+        correctAnswers += 1;
+        streak += 1;
+        bestStreak = Math.max(bestStreak, streak);
+        const earned = POINTS_PER_CORRECT + (streak > 1 ? (streak - 1) * 25 : 0) + timeLeft * 5;
+        score += earned;
+        feedbackElement.textContent = `Correct! +${earned} points${streak > 1 ? ` · ${streak} in a row!` : ""}`;
+        feedbackElement.classList.add("good");
+        playTone(660, 0.12);
+      } else {
+        if (selectedIndex !== null) buttons[selectedIndex].classList.add("incorrect");
+        streak = 0;
+        feedbackElement.textContent = selectedIndex === null ? "Time's up! The correct answer is highlighted above." : "Not quite — the correct answer is highlighted above.";
+        feedbackElement.classList.add("bad");
+        playTone(220, 0.18);
+      }
+
+      scoreElement.textContent = score;
+      streakElement.textContent = streak;
+      progressBar.setAttribute("aria-valuenow", currentQuestion + 1);
+      document.getElementById("progress-fill").style.width = `${((currentQuestion + 1) / QUESTIONS.length) * 100}%`;
+      nextButton.textContent = currentQuestion === QUESTIONS.length - 1 ? "See results →" : "Next question →";
+      nextButton.classList.remove("hidden");
+      nextButton.focus();
+    }
+
+    function advanceQuestion() {
+      currentQuestion += 1;
+      renderQuestion();
+    }
+
+    function showResults() {
+      clearInterval(timerId);
+      showScreen("result");
+      document.getElementById("final-score").textContent = score;
+      document.getElementById("correct-count").textContent = `${correctAnswers}/${QUESTIONS.length}`;
+      document.getElementById("best-streak").textContent = bestStreak;
+      document.getElementById("accuracy").textContent = `${Math.round((correctAnswers / QUESTIONS.length) * 100)}%`;
+
+      let title = "Keep exploring!";
+      let icon = "🌱";
+      if (correctAnswers === QUESTIONS.length) {
+        title = "Perfect score!";
+        icon = "🏆";
+      } else if (correctAnswers >= 7) {
+        title = "Brilliant work!";
+        icon = "🌟";
+      } else if (correctAnswers >= 4) {
+        title = "Nice one!";
+        icon = "✨";
+      }
+      document.getElementById("result-title").textContent = title;
+      document.getElementById("result-icon").textContent = icon;
+      document.getElementById("result-copy").textContent =
+        correctAnswers === QUESTIONS.length ? "A flawless round. You really know your stuff!" : "You made it through all ten questions. Ready for another round?";
+    }
+
+    function playTone(frequency, duration) {
+      if (!soundEnabled) return;
+      try {
+        audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        oscillator.frequency.value = frequency;
+        oscillator.type = "sine";
+        gain.gain.setValueAtTime(0.08, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + duration);
+      } catch (error) {
+        console.warn("Audio is unavailable in this browser.", error);
+        soundEnabled = false;
+        updateSoundButton();
+      }
+    }
+
+    function updateSoundButton() {
+      const button = document.getElementById("sound-toggle");
+      button.textContent = soundEnabled ? "♫" : "♪";
+      button.setAttribute("aria-label", soundEnabled ? "Turn sound off" : "Turn sound on");
+      button.title = soundEnabled ? "Turn sound off" : "Turn sound on";
+    }
+
+    document.getElementById("start-button").addEventListener("click", startGame);
+    document.getElementById("play-again-button").addEventListener("click", startGame);
+    nextButton.addEventListener("click", advanceQuestion);
+    document.getElementById("sound-toggle").addEventListener("click", () => {
+      soundEnabled = !soundEnabled;
+      updateSoundButton();
+      if (soundEnabled) playTone(520, 0.1);
+    });
+  </script>
+</body>
+</html>
